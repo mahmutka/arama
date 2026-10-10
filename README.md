@@ -1,79 +1,83 @@
 # Arama
 
-Windows için, [Everything](https://www.voidtools.com/) benzeri, yazarken anında sonuç veren bir dosya adı arama programı.
+An instant file-name search tool for Windows, similar to [Everything](https://www.voidtools.com/).
 
-NTFS disklerin dosya tablosunu (MFT) doğrudan okuyarak milyonlarca dosyayı saniyeler içinde indeksler, ardından USN Journal'ı izleyerek oluşturma, silme, yeniden adlandırma ve değiştirme işlemlerini yaklaşık bir saniye içinde sonuçlara yansıtır. Arayüz Türkçedir.
+It reads the NTFS Master File Table (MFT) directly to index millions of files in seconds, then watches the USN Journal so that files being created, deleted, renamed or modified show up in the results within about a second. The user interface is in Turkish ("arama" means "search").
 
-## Özellikler
+## Features
 
-- Yazarken anında sonuç (yaklaşık 2,3 milyon dosyada isim araması 10–20 ms)
-- Büyük/küçük harf ve Türkçe karakter duyarsız arama (`ogrenci` → `Öğrenci.docx`)
-- VE / VEYA / DEĞİL, joker karakter, yol ve regex araması
-- Filtreler: Tümü, Dosyalar, Klasörler, Belgeler, Resimler, Ses, Video, Arşivler, Programlar
-- Ada, yola, boyuta ve değiştirilme tarihine göre sıralama
-- Sistem tepsisi, `Ctrl+Alt+Space` kısayolu, "Windows ile başlat"
-- Boştayken neredeyse sıfır işlemci kullanımı
+- Results as you type (name search over ~2.3 million files takes 10–20 ms)
+- Case-insensitive and Turkish-character-insensitive matching (`ogrenci` finds `Öğrenci.docx`)
+- AND / OR / NOT, wildcards, path and regex search
+- Filters: All, Files, Folders, Documents, Pictures, Audio, Video, Archives, Programs
+- Sort by name, path, size or date modified
+- System tray icon, global `Ctrl+Alt+Space` hotkey, "Start with Windows"
+- Near-zero CPU usage while idle
 
-## Gereksinimler
+## Requirements
 
-- Windows 10 / 11 (64 bit)
-- .NET Framework 4.8 (Windows'ta yerleşik gelir; ek kurulum gerekmez)
-- Yönetici izni: diskin dosya tablosunu ham olarak okumak için gereklidir
-- NTFS biçimli sabit diskler
+- Windows 10 / 11 (64-bit)
+- .NET Framework 4.8 (built into Windows; nothing to install)
+- Administrator rights, needed to read the disk's file table directly
+- NTFS-formatted fixed drives
 
-## Derleme
+## Download
+
+Get `Arama.exe` from the [Releases](https://github.com/mahmutka/arama/releases) page. No installation is needed. The executable is not code-signed, so Windows SmartScreen may show a warning on first run ("More info" → "Run anyway").
+
+## Building
 
 ```bat
 build.bat
 ```
 
-Windows'un kendi C# derleyicisini (`%WINDIR%\Microsoft.NET\Framework64\v4.0.30319\csc.exe`) kullanır ve şunları üretir:
+Uses the C# compiler that ships with Windows (`%WINDIR%\Microsoft.NET\Framework64\v4.0.30319\csc.exe`) and produces:
 
-- `bin\Arama.exe` — program (açılırken yönetici izni ister)
-- `bin\Tests.exe` — testler
+- `bin\Arama.exe` — the application (asks for administrator rights on start)
+- `bin\Tests.exe` — the test suite
 
-## Testler
+## Tests
 
 ```bat
-bin\Tests.exe              :: tüm testler
-bin\Tests.exe Query        :: adında "Query" geçen testler
-bin\Tests.exe --out sonuc.txt
+bin\Tests.exe              :: all tests
+bin\Tests.exe Query        :: tests whose name contains "Query"
+bin\Tests.exe --out result.txt
 ```
 
-Gerçek diski okuyan testler yalnızca yönetici olarak çalıştırıldığında koşar; aksi halde "ATLANDI" olarak geçilir.
+Tests that read a real disk run only when started as administrator; otherwise they are reported as skipped ("ATLANDI").
 
-## Arama sözdizimi
+## Search syntax
 
-| Yazılan | Anlamı |
+| Input | Meaning |
 |---|---|
-| `rapor 2024` | boşluk = VE: adında ikisi de geçenler |
-| `jpg\|png` | VEYA |
-| `!tmp` | DEĞİL |
-| `"yeni klasör"` | boşluk içeren ifade |
-| `*.pdf`, `rapor??.docx` | joker karakter, adın tamamıyla eşleşir |
-| `D:\projeler\ .cs` | `\` içeren terim tam yolla eşleşir |
-| `regex:^IMG_\d+` | düzenli ifade (adla; desen `\\` içeriyorsa tam yolla) |
+| `report 2024` | space = AND: names containing both |
+| `jpg\|png` | OR |
+| `!tmp` | NOT |
+| `"new folder"` | phrase containing a space |
+| `*.pdf`, `report??.docx` | wildcards, matched against the whole name |
+| `D:\projects\ .cs` | a term containing `\` is matched against the full path |
+| `regex:^IMG_\d+` | regular expression (against the name; against the full path if the pattern contains `\\`) |
 
-## Kısayollar
+## Keyboard shortcuts
 
-| Tuş | İşlem |
+| Key | Action |
 |---|---|
-| Enter / çift tık | Dosyayı açar |
-| Ctrl+Enter | Dosyayı klasöründe gösterir |
-| Ctrl+C | Seçili dosyaların tam yolunu kopyalar |
-| Esc | Pencereyi tepsiye gizler |
-| Ctrl+Alt+Space | Pencereyi her yerden açar |
+| Enter / double-click | Open the file |
+| Ctrl+Enter | Show the file in its folder |
+| Ctrl+C | Copy the full paths of the selected files |
+| Esc | Hide the window to the tray |
+| Ctrl+Alt+Space | Bring up the window from anywhere |
 
-Program yönetici olarak çalıştığı için dosyalar Explorer üzerinden açılır; açılan programlar yönetici yetkisi devralmaz.
+Because the program runs as administrator, files are opened through Explorer so that the launched programs do not inherit administrator rights.
 
-## Ayarlar ve günlük
+## Settings and log
 
-- `%APPDATA%\Arama\ayarlar.ini` — pencere konumu/boyutu ve sütun genişlikleri
-- `%APPDATA%\Arama\hata.log` — beklenmeyen hatalar
+- `%APPDATA%\Arama\ayarlar.ini` — window position/size and column widths
+- `%APPDATA%\Arama\hata.log` — unexpected errors
 
-## Bilinen sınırlar
+## Known limitations
 
-- Yalnızca NTFS sabit diskler indekslenir (FAT32/exFAT, ağ sürücüleri ve sonradan takılan diskler hariç).
-- Dosya içeriği aranmaz; yalnızca ad ve yol.
-- Birden fazla adı olan (hard link) dosyalar tek konumda gösterilir.
-- Program yönetici olarak çalıştığından Windows, listeden yönetici olmayan Explorer'a sürükle-bırakı engelleyebilir.
+- Only NTFS fixed drives are indexed (FAT32/exFAT, network drives and drives attached after start-up are not).
+- File contents are not searched; only names and paths.
+- Files with multiple names (hard links) are shown in one location only.
+- Because the program runs as administrator, Windows may block drag-and-drop from the result list into a non-elevated Explorer window.
